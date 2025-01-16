@@ -30,7 +30,7 @@ interface OrderItem {
   menu_item_id: string;
   quantity: number;
   unit_price: number;
-  subtotal: number;
+  subtotal: number; // Keep this for UI display only
 }
 
 const CreateOrder = () => {
@@ -83,7 +83,8 @@ const CreateOrder = () => {
 
       if (orderError) throw orderError;
 
-      const orderItemsWithOrderId = orderItems.map((item) => ({
+      // Remove subtotal from order items when sending to database
+      const orderItemsWithOrderId = orderItems.map(({ subtotal, ...item }) => ({
         ...item,
         order_id: order.id,
       }));
