@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { Download } from "lucide-react";
+import CreateOrder from "./CreateOrder";
 
 interface Order {
   id: string;
@@ -14,6 +16,7 @@ interface Order {
   customer: {
     name: string;
     table_number: string;
+    phone: string;
   };
   order_items: {
     id: string;
@@ -38,7 +41,7 @@ const OrderManagement = () => {
         .from("orders")
         .select(`
           *,
-          customer:customers(name, table_number),
+          customer:customers(name, table_number, phone),
           order_items(
             id,
             quantity,
@@ -95,6 +98,40 @@ const OrderManagement = () => {
     },
   });
 
+  const downloadBill = (order: Order) => {
+    // Create bill content
+    const billContent = `
+RESTAURANT BILL
+
+Order #${order.id.slice(0, 8)}
+Date: ${new Date(order.created_at).toLocaleString()}
+
+Customer: ${order.customer?.name || `Table ${order.customer?.table_number}`}
+${order.customer?.phone ? `Phone: ${order.customer?.phone}` : ''}
+
+Items:
+${order.order_items.map(item => 
+  `${item.quantity}x ${item.menu_item?.name}
+   $${item.unit_price.toFixed(2)} x ${item.quantity} = $${item.subtotal.toFixed(2)}`
+).join('\n')}
+
+Total Amount: $${order.total_amount.toFixed(2)}
+
+Thank you for your business!
+    `;
+
+    // Create blob and download
+    const blob = new Blob([billContent], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `bill-${order.id.slice(0, 8)}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  };
+
   const getStatusColor = (status: Order["status"]) => {
     switch (status) {
       case "pending":
@@ -124,77 +161,89 @@ const OrderManagement = () => {
     );
   }
 
-  if (!orders?.length) {
-    return (
-      <div className="flex items-center justify-center min-h-[200px]">
-        <p className="text-gray-500">No orders found.</p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      {orders.map((order) => (
-        <Card key={order.id}>
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <CardTitle className="text-lg">
-                Order #{order.id.slice(0, 8)}
-              </CardTitle>
-              <Badge className={getStatusColor(order.status)}>
-                {order.status.toUpperCase()}
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm text-gray-500">Customer Details</p>
-                <p className="font-medium">
-                  {order.customer?.name || `Table ${order.customer?.table_number}`}
-                </p>
-              </div>
+      <CreateOrder />
 
-              <div>
-                <p className="text-sm text-gray-500 mb-2">Order Items</p>
-                <div className="space-y-2">
-                  {order.order_items?.map((item) => (
-                    <div key={item.id} className="flex justify-between">
-                      <span>
-                        {item.quantity}x {item.menu_item?.name}
-                      </span>
-                      <span>${item.subtotal.toFixed(2)}</span>
-                    </div>
-                  ))}
-                  <div className="border-t pt-2 mt-2">
-                    <div className="flex justify-between font-medium">
-                      <span>Total</span>
-                      <span>${order.total_amount.toFixed(2)}</span>
+      {!orders?.length ? (
+        <div className="flex items-center justify-center min-h-[200px]">
+          <p className="text-gray-500">No orders found.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {orders.map((order) => (
+            <Card key={order.id}>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle className="text-lg">
+                    Order #{order.id.slice(0, 8)}
+                  </CardTitle>
+                  <Badge className={getStatusColor(order.status)}>
+                    {order.status.toUpperCase()}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm text-gray-500">Customer Details</p>
+                    <p className="font-medium">
+                      {order.customer?.name || `Table ${order.customer?.table_number}`}
+                      {order.customer?.phone && ` (${order.customer.phone})`}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-gray-500 mb-2">Order Items</p>
+                    <div className="space-y-2">
+                      {order.order_items?.map((item) => (
+                        <div key={item.id} className="flex justify-between">
+                          <span>
+                            {item.quantity}x {item.menu_item?.name}
+                          </span>
+                          <span>${item.subtotal.toFixed(2)}</span>
+                        </div>
+                      ))}
+                      <div className="border-t pt-2 mt-2">
+                        <div className="flex justify-between font-medium">
+                          <span>Total</span>
+                          <span>${order.total_amount.toFixed(2)}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
 
-              <div className="flex gap-2">
-                {order.status === "pending" && (
-                  <Button
-                    onClick={() => updateOrderStatus.mutate({ orderId: order.id, status: "ready" })}
-                  >
-                    Mark as Ready
-                  </Button>
-                )}
-                {order.status === "ready" && (
-                  <Button
-                    onClick={() => updateOrderStatus.mutate({ orderId: order.id, status: "paid" })}
-                  >
-                    Mark as Paid
-                  </Button>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+                  <div className="flex gap-2">
+                    {order.status === "pending" && (
+                      <Button
+                        onClick={() => updateOrderStatus.mutate({ orderId: order.id, status: "ready" })}
+                      >
+                        Mark as Ready
+                      </Button>
+                    )}
+                    {order.status === "ready" && (
+                      <Button
+                        onClick={() => updateOrderStatus.mutate({ orderId: order.id, status: "paid" })}
+                      >
+                        Mark as Paid
+                      </Button>
+                    )}
+                    {order.status === "paid" && (
+                      <Button
+                        variant="outline"
+                        onClick={() => downloadBill(order)}
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        Download Bill
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
