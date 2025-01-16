@@ -56,12 +56,14 @@ const OrderManagement = () => {
       console.log("Orders data:", data);
       return data as Order[];
     },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to load orders: " + error.message,
-        variant: "destructive",
-      });
+    meta: {
+      onError: (error: Error) => {
+        toast({
+          title: "Error",
+          description: "Failed to load orders: " + error.message,
+          variant: "destructive",
+        });
+      },
     },
   });
 

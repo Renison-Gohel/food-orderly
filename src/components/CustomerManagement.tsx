@@ -31,12 +31,14 @@ const CustomerManagement = () => {
       console.log("Customers data:", data);
       return data as Customer[];
     },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to load customers: " + error.message,
-        variant: "destructive",
-      });
+    meta: {
+      onError: (error: Error) => {
+        toast({
+          title: "Error",
+          description: "Failed to load customers: " + error.message,
+          variant: "destructive",
+        });
+      },
     },
   });
 
