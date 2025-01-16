@@ -30,9 +30,10 @@ const OrderManagement = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: orders, isLoading } = useQuery({
+  const { data: orders, isLoading, error } = useQuery({
     queryKey: ["orders"],
     queryFn: async () => {
+      console.log("Fetching orders...");
       const { data, error } = await supabase
         .from("orders")
         .select(`
@@ -48,8 +49,19 @@ const OrderManagement = () => {
         `)
         .order("created_at", { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching orders:", error);
+        throw error;
+      }
+      console.log("Orders data:", data);
       return data as Order[];
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to load orders: " + error.message,
+        variant: "destructive",
+      });
     },
   });
 
@@ -94,11 +106,33 @@ const OrderManagement = () => {
     }
   };
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <p className="text-gray-500">Loading orders...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <p className="text-red-500">Error loading orders. Please try again.</p>
+      </div>
+    );
+  }
+
+  if (!orders?.length) {
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <p className="text-gray-500">No orders found.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {orders?.map((order) => (
+      {orders.map((order) => (
         <Card key={order.id}>
           <CardHeader>
             <div className="flex justify-between items-center">
@@ -115,17 +149,17 @@ const OrderManagement = () => {
               <div>
                 <p className="text-sm text-gray-500">Customer Details</p>
                 <p className="font-medium">
-                  {order.customer.name || `Table ${order.customer.table_number}`}
+                  {order.customer?.name || `Table ${order.customer?.table_number}`}
                 </p>
               </div>
 
               <div>
                 <p className="text-sm text-gray-500 mb-2">Order Items</p>
                 <div className="space-y-2">
-                  {order.order_items.map((item) => (
+                  {order.order_items?.map((item) => (
                     <div key={item.id} className="flex justify-between">
                       <span>
-                        {item.quantity}x {item.menu_item.name}
+                        {item.quantity}x {item.menu_item?.name}
                       </span>
                       <span>${item.subtotal.toFixed(2)}</span>
                     </div>
