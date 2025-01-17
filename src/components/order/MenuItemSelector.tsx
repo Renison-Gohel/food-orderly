@@ -3,20 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Loader2 } from "lucide-react";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface MenuItem {
   id: string;
@@ -39,8 +33,6 @@ const MenuItemSelector = ({
   onQuantityChange,
   onAddItem,
 }: MenuItemSelectorProps) => {
-  const [open, setOpen] = useState(false);
-
   const { data: menuItems, isLoading } = useQuery({
     queryKey: ["menuItems"],
     queryFn: async () => {
@@ -52,59 +44,29 @@ const MenuItemSelector = ({
     },
   });
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2 h-10 px-4 border rounded-md">
+        <Loader2 className="h-4 w-4 animate-spin" />
+        <span>Loading menu items...</span>
+      </div>
+    );
+  }
+
   return (
     <div className="flex gap-2">
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className="w-full justify-between"
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <div className="flex items-center">
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Loading menu items...
-              </div>
-            ) : selectedMenuItem ? (
-              menuItems?.find((item) => item.id === selectedMenuItem)?.name
-            ) : (
-              "Select Menu Item"
-            )}
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        {!isLoading && menuItems && menuItems.length > 0 && (
-          <PopoverContent className="w-[400px] p-0">
-            <Command>
-              <CommandInput placeholder="Search menu item..." />
-              <CommandEmpty>No menu item found.</CommandEmpty>
-              <CommandGroup>
-                {menuItems.map((item) => (
-                  <CommandItem
-                    key={item.id}
-                    value={item.id}
-                    onSelect={(currentValue) => {
-                      onSelectMenuItem(currentValue === selectedMenuItem ? "" : currentValue);
-                      setOpen(false);
-                    }}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        selectedMenuItem === item.id ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    {item.name} - ${item.price}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </Command>
-          </PopoverContent>
-        )}
-      </Popover>
+      <Select value={selectedMenuItem} onValueChange={onSelectMenuItem}>
+        <SelectTrigger className="flex-1">
+          <SelectValue placeholder="Select Menu Item" />
+        </SelectTrigger>
+        <SelectContent>
+          {menuItems?.map((item) => (
+            <SelectItem key={item.id} value={item.id}>
+              {item.name} - ${item.price}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       <Input
         type="number"
         min="1"
@@ -112,7 +74,9 @@ const MenuItemSelector = ({
         onChange={(e) => onQuantityChange(parseInt(e.target.value) || 1)}
         className="w-24"
       />
-      <Button onClick={onAddItem}>Add Item</Button>
+      <Button onClick={onAddItem} disabled={!selectedMenuItem}>
+        Add Item
+      </Button>
     </div>
   );
 };
