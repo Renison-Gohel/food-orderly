@@ -5,14 +5,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileX } from "lucide-react";
+import { FileX, Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface MenuItem {
   id: string;
@@ -31,7 +37,7 @@ interface OrderItem {
   menu_item_id: string;
   quantity: number;
   unit_price: number;
-  subtotal: number; // Keep this for UI display only
+  subtotal: number;
 }
 
 const CreateOrder = () => {
@@ -41,6 +47,8 @@ const CreateOrder = () => {
   const [selectedMenuItem, setSelectedMenuItem] = useState<string>("");
   const [quantity, setQuantity] = useState<number>(1);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+  const [customerOpen, setCustomerOpen] = useState(false);
+  const [menuItemOpen, setMenuItemOpen] = useState(false);
 
   const { data: customers } = useQuery({
     queryKey: ["customers"],
@@ -134,6 +142,11 @@ const CreateOrder = () => {
     setOrderItems([...orderItems, newItem]);
     setSelectedMenuItem("");
     setQuantity(1);
+    setMenuItemOpen(false);
+    toast({
+      title: "Item Added",
+      description: "The item has been added to the order",
+    });
   };
 
   const resetOrder = () => {
@@ -141,6 +154,8 @@ const CreateOrder = () => {
     setSelectedMenuItem("");
     setQuantity(1);
     setOrderItems([]);
+    setCustomerOpen(false);
+    setMenuItemOpen(false);
     toast({
       title: "Order Reset",
       description: "The order has been reset successfully",
@@ -157,6 +172,10 @@ const CreateOrder = () => {
     });
   };
 
+  const getCustomerLabel = (customer: Customer) => {
+    return customer.name || `Table ${customer.table_number}` + (customer.phone ? ` (${customer.phone})` : '');
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -164,32 +183,95 @@ const CreateOrder = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <Select value={selectedCustomer} onValueChange={setSelectedCustomer}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select Customer" />
-            </SelectTrigger>
-            <SelectContent>
-              {customers?.map((customer) => (
-                <SelectItem key={customer.id} value={customer.id}>
-                  {customer.name || `Table ${customer.table_number}`} {customer.phone && `(${customer.phone})`}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Popover open={customerOpen} onOpenChange={setCustomerOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={customerOpen}
+                className="w-full justify-between"
+              >
+                {selectedCustomer ? (
+                  customers?.find((customer) => customer.id === selectedCustomer)?.name ||
+                  `Table ${customers?.find((customer) => customer.id === selectedCustomer)?.table_number}`
+                ) : (
+                  "Select Customer"
+                )}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[400px] p-0">
+              <Command>
+                <CommandInput placeholder="Search customer..." />
+                <CommandEmpty>No customer found.</CommandEmpty>
+                <CommandGroup>
+                  {customers?.map((customer) => (
+                    <CommandItem
+                      key={customer.id}
+                      value={customer.id}
+                      onSelect={(currentValue) => {
+                        setSelectedCustomer(currentValue === selectedCustomer ? "" : currentValue);
+                        setCustomerOpen(false);
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          selectedCustomer === customer.id ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      {getCustomerLabel(customer)}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </Command>
+            </PopoverContent>
+          </Popover>
 
           <div className="flex gap-2">
-            <Select value={selectedMenuItem} onValueChange={setSelectedMenuItem}>
-              <SelectTrigger className="flex-1">
-                <SelectValue placeholder="Select Menu Item" />
-              </SelectTrigger>
-              <SelectContent>
-                {menuItems?.map((item) => (
-                  <SelectItem key={item.id} value={item.id}>
-                    {item.name} - ${item.price}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover open={menuItemOpen} onOpenChange={setMenuItemOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={menuItemOpen}
+                  className="w-full justify-between"
+                >
+                  {selectedMenuItem ? (
+                    menuItems?.find((item) => item.id === selectedMenuItem)?.name
+                  ) : (
+                    "Select Menu Item"
+                  )}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[400px] p-0">
+                <Command>
+                  <CommandInput placeholder="Search menu item..." />
+                  <CommandEmpty>No menu item found.</CommandEmpty>
+                  <CommandGroup>
+                    {menuItems?.map((item) => (
+                      <CommandItem
+                        key={item.id}
+                        value={item.id}
+                        onSelect={(currentValue) => {
+                          setSelectedMenuItem(currentValue === selectedMenuItem ? "" : currentValue);
+                          setMenuItemOpen(false);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            selectedMenuItem === item.id ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        {item.name} - ${item.price}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </Command>
+              </PopoverContent>
+            </Popover>
             <Input
               type="number"
               min="1"
