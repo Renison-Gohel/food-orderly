@@ -33,7 +33,7 @@ const CustomerSelector = ({ selectedCustomer, onSelectCustomer }: CustomerSelect
   const [open, setOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
 
-  const { data: customers, isLoading } = useQuery({
+  const { data: customers = [], isLoading } = useQuery({
     queryKey: ["customers"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -48,9 +48,9 @@ const CustomerSelector = ({ selectedCustomer, onSelectCustomer }: CustomerSelect
     return customer.name || `Table ${customer.table_number}` + (customer.phone ? ` (${customer.phone})` : '');
   };
 
-  const selectedCustomerLabel = customers?.find(c => c.id === selectedCustomer);
+  const selectedCustomerLabel = customers.find(c => c.id === selectedCustomer);
 
-  const filteredCustomers = customers?.filter(customer => {
+  const filteredCustomers = customers.filter(customer => {
     if (!searchValue) return true;
     const searchTerm = searchValue.toLowerCase();
     const customerName = customer.name?.toLowerCase() || '';
@@ -62,15 +62,6 @@ const CustomerSelector = ({ selectedCustomer, onSelectCustomer }: CustomerSelect
            phone.includes(searchTerm);
   });
 
-  if (isLoading) {
-    return (
-      <Button variant="outline" className="w-full justify-between" disabled>
-        <span>Loading customers...</span>
-        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-      </Button>
-    );
-  }
-
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -79,10 +70,13 @@ const CustomerSelector = ({ selectedCustomer, onSelectCustomer }: CustomerSelect
           role="combobox"
           aria-expanded={open}
           className="w-full justify-between"
+          disabled={isLoading}
         >
-          {selectedCustomer
-            ? getCustomerLabel(selectedCustomerLabel as Customer)
-            : "Select customer..."}
+          {selectedCustomer && selectedCustomerLabel
+            ? getCustomerLabel(selectedCustomerLabel)
+            : isLoading 
+              ? "Loading customers..."
+              : "Select customer..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -95,7 +89,7 @@ const CustomerSelector = ({ selectedCustomer, onSelectCustomer }: CustomerSelect
           />
           <CommandEmpty>No customer found.</CommandEmpty>
           <CommandGroup className="max-h-[300px] overflow-auto">
-            {filteredCustomers?.map((customer) => (
+            {filteredCustomers.map((customer) => (
               <CommandItem
                 key={customer.id}
                 value={customer.id}

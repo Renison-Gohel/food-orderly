@@ -42,7 +42,7 @@ const MenuItemSelector = ({
   const [open, setOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
 
-  const { data: menuItems, isLoading } = useQuery({
+  const { data: menuItems = [], isLoading } = useQuery({
     queryKey: ["menuItems"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -53,33 +53,13 @@ const MenuItemSelector = ({
     },
   });
 
-  const selectedItem = menuItems?.find(item => item.id === selectedMenuItem);
+  const selectedItem = menuItems.find(item => item.id === selectedMenuItem);
 
-  const filteredMenuItems = menuItems?.filter(item => {
+  const filteredMenuItems = menuItems.filter(item => {
     if (!searchValue) return true;
     const searchTerm = searchValue.toLowerCase();
     return item.name.toLowerCase().includes(searchTerm);
   });
-
-  if (isLoading) {
-    return (
-      <div className="flex gap-2">
-        <Button variant="outline" className="w-full justify-between" disabled>
-          <span>Loading menu items...</span>
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-        <Input
-          type="number"
-          min="1"
-          value={quantity}
-          onChange={(e) => onQuantityChange(parseInt(e.target.value) || 1)}
-          className="w-24"
-          disabled
-        />
-        <Button disabled>Add Item</Button>
-      </div>
-    );
-  }
 
   return (
     <div className="flex gap-2">
@@ -90,10 +70,13 @@ const MenuItemSelector = ({
             role="combobox"
             aria-expanded={open}
             className="w-full justify-between"
+            disabled={isLoading}
           >
-            {selectedMenuItem
-              ? `${selectedItem?.name} - $${selectedItem?.price}`
-              : "Select menu item..."}
+            {selectedMenuItem && selectedItem
+              ? `${selectedItem.name} - $${selectedItem.price}`
+              : isLoading
+                ? "Loading menu items..."
+                : "Select menu item..."}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
@@ -106,7 +89,7 @@ const MenuItemSelector = ({
             />
             <CommandEmpty>No menu item found.</CommandEmpty>
             <CommandGroup className="max-h-[300px] overflow-auto">
-              {filteredMenuItems?.map((item) => (
+              {filteredMenuItems.map((item) => (
                 <CommandItem
                   key={item.id}
                   value={item.id}
@@ -134,8 +117,9 @@ const MenuItemSelector = ({
         value={quantity}
         onChange={(e) => onQuantityChange(parseInt(e.target.value) || 1)}
         className="w-24"
+        disabled={isLoading}
       />
-      <Button onClick={onAddItem} disabled={!selectedMenuItem}>
+      <Button onClick={onAddItem} disabled={!selectedMenuItem || isLoading}>
         Add Item
       </Button>
     </div>
