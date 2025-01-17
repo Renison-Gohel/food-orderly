@@ -3,14 +3,20 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2 } from "lucide-react";
+import { Loader2, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface MenuItem {
   id: string;
@@ -33,6 +39,9 @@ const MenuItemSelector = ({
   onQuantityChange,
   onAddItem,
 }: MenuItemSelectorProps) => {
+  const [open, setOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+
   const { data: menuItems, isLoading } = useQuery({
     queryKey: ["menuItems"],
     queryFn: async () => {
@@ -44,6 +53,8 @@ const MenuItemSelector = ({
     },
   });
 
+  const selectedItem = menuItems?.find(item => item.id === selectedMenuItem);
+
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 h-10 px-4 border rounded-md">
@@ -53,20 +64,57 @@ const MenuItemSelector = ({
     );
   }
 
+  const filteredMenuItems = menuItems?.filter(item => {
+    const searchTerm = searchValue.toLowerCase();
+    return item.name.toLowerCase().includes(searchTerm);
+  });
+
   return (
     <div className="flex gap-2">
-      <Select value={selectedMenuItem} onValueChange={onSelectMenuItem}>
-        <SelectTrigger className="flex-1">
-          <SelectValue placeholder="Select Menu Item" />
-        </SelectTrigger>
-        <SelectContent>
-          {menuItems?.map((item) => (
-            <SelectItem key={item.id} value={item.id}>
-              {item.name} - ${item.price}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className="w-full justify-between"
+          >
+            {selectedMenuItem
+              ? `${selectedItem?.name} - $${selectedItem?.price}`
+              : "Select menu item..."}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[400px] p-0">
+          <Command>
+            <CommandInput
+              placeholder="Search menu items..."
+              value={searchValue}
+              onValueChange={setSearchValue}
+            />
+            <CommandEmpty>No menu item found.</CommandEmpty>
+            <CommandGroup className="max-h-[300px] overflow-auto">
+              {filteredMenuItems?.map((item) => (
+                <CommandItem
+                  key={item.id}
+                  value={item.id}
+                  onSelect={() => {
+                    onSelectMenuItem(item.id);
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      selectedMenuItem === item.id ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {item.name} - ${item.price}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </Command>
+        </PopoverContent>
+      </Popover>
       <Input
         type="number"
         min="1"
