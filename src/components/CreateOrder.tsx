@@ -1,37 +1,12 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileX, Check, ChevronsUpDown, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-
-interface MenuItem {
-  id: string;
-  name: string;
-  price: number;
-}
-
-interface Customer {
-  id: string;
-  name: string;
-  phone: string;
-  table_number: string;
-}
+import CustomerSelector from "./order/CustomerSelector";
+import MenuItemSelector from "./order/MenuItemSelector";
+import OrderItemsList from "./order/OrderItemsList";
 
 interface OrderItem {
   menu_item_id: string;
@@ -47,28 +22,15 @@ const CreateOrder = () => {
   const [selectedMenuItem, setSelectedMenuItem] = useState<string>("");
   const [quantity, setQuantity] = useState<number>(1);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
-  const [customerOpen, setCustomerOpen] = useState(false);
-  const [menuItemOpen, setMenuItemOpen] = useState(false);
 
-  const { data: customers, isLoading: isLoadingCustomers } = useQuery({
-    queryKey: ["customers"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("customers")
-        .select("*");
-      if (error) throw error;
-      return data as Customer[];
-    },
-  });
-
-  const { data: menuItems, isLoading: isLoadingMenuItems } = useQuery({
+  const { data: menuItems } = useQuery({
     queryKey: ["menuItems"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("menu_items")
         .select("*");
       if (error) throw error;
-      return data as MenuItem[];
+      return data;
     },
   });
 
@@ -92,7 +54,6 @@ const CreateOrder = () => {
 
       if (orderError) throw orderError;
 
-      // Remove subtotal from order items when sending to database
       const orderItemsWithOrderId = orderItems.map(({ subtotal, ...item }) => ({
         ...item,
         order_id: order.id,
@@ -112,11 +73,7 @@ const CreateOrder = () => {
         title: "Success",
         description: "Order created successfully",
       });
-      // Reset form
-      setSelectedCustomer("");
-      setSelectedMenuItem("");
-      setQuantity(1);
-      setOrderItems([]);
+      resetOrder();
     },
     onError: (error: Error) => {
       toast({
@@ -142,7 +99,6 @@ const CreateOrder = () => {
     setOrderItems([...orderItems, newItem]);
     setSelectedMenuItem("");
     setQuantity(1);
-    setMenuItemOpen(false);
     toast({
       title: "Item Added",
       description: "The item has been added to the order",
@@ -154,8 +110,6 @@ const CreateOrder = () => {
     setSelectedMenuItem("");
     setQuantity(1);
     setOrderItems([]);
-    setCustomerOpen(false);
-    setMenuItemOpen(false);
     toast({
       title: "Order Reset",
       description: "The order has been reset successfully",
@@ -172,10 +126,6 @@ const CreateOrder = () => {
     });
   };
 
-  const getCustomerLabel = (customer: Customer) => {
-    return customer.name || `Table ${customer.table_number}` + (customer.phone ? ` (${customer.phone})` : '');
-  };
-
   return (
     <Card>
       <CardHeader>
@@ -183,154 +133,24 @@ const CreateOrder = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <Popover open={customerOpen} onOpenChange={setCustomerOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                aria-expanded={customerOpen}
-                className="w-full justify-between"
-                disabled={isLoadingCustomers}
-              >
-                {isLoadingCustomers ? (
-                  <div className="flex items-center">
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Loading customers...
-                  </div>
-                ) : selectedCustomer ? (
-                  customers?.find((customer) => customer.id === selectedCustomer)?.name ||
-                  `Table ${customers?.find((customer) => customer.id === selectedCustomer)?.table_number}`
-                ) : (
-                  "Select Customer"
-                )}
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            {!isLoadingCustomers && customers && customers.length > 0 && (
-              <PopoverContent className="w-[400px] p-0">
-                <Command>
-                  <CommandInput placeholder="Search customer..." />
-                  <CommandEmpty>No customer found.</CommandEmpty>
-                  <CommandGroup>
-                    {customers.map((customer) => (
-                      <CommandItem
-                        key={customer.id}
-                        value={customer.id}
-                        onSelect={(currentValue) => {
-                          setSelectedCustomer(currentValue === selectedCustomer ? "" : currentValue);
-                          setCustomerOpen(false);
-                        }}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            selectedCustomer === customer.id ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                        {getCustomerLabel(customer)}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </Command>
-              </PopoverContent>
-            )}
-          </Popover>
+          <CustomerSelector
+            selectedCustomer={selectedCustomer}
+            onSelectCustomer={setSelectedCustomer}
+          />
 
-          <div className="flex gap-2">
-            <Popover open={menuItemOpen} onOpenChange={setMenuItemOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={menuItemOpen}
-                  className="w-full justify-between"
-                  disabled={isLoadingMenuItems}
-                >
-                  {isLoadingMenuItems ? (
-                    <div className="flex items-center">
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Loading menu items...
-                    </div>
-                  ) : selectedMenuItem ? (
-                    menuItems?.find((item) => item.id === selectedMenuItem)?.name
-                  ) : (
-                    "Select Menu Item"
-                  )}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              {!isLoadingMenuItems && menuItems && menuItems.length > 0 && (
-                <PopoverContent className="w-[400px] p-0">
-                  <Command>
-                    <CommandInput placeholder="Search menu item..." />
-                    <CommandEmpty>No menu item found.</CommandEmpty>
-                    <CommandGroup>
-                      {menuItems.map((item) => (
-                        <CommandItem
-                          key={item.id}
-                          value={item.id}
-                          onSelect={(currentValue) => {
-                            setSelectedMenuItem(currentValue === selectedMenuItem ? "" : currentValue);
-                            setMenuItemOpen(false);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              selectedMenuItem === item.id ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          {item.name} - ${item.price}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </Command>
-                </PopoverContent>
-              )}
-            </Popover>
-            <Input
-              type="number"
-              min="1"
-              value={quantity}
-              onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-              className="w-24"
-            />
-            <Button onClick={addItemToOrder}>Add Item</Button>
-          </div>
+          <MenuItemSelector
+            selectedMenuItem={selectedMenuItem}
+            quantity={quantity}
+            onSelectMenuItem={setSelectedMenuItem}
+            onQuantityChange={setQuantity}
+            onAddItem={addItemToOrder}
+          />
 
-          {orderItems.length > 0 && (
-            <div className="space-y-2">
-              <h3 className="font-medium">Order Items:</h3>
-              {orderItems.map((item, index) => {
-                const menuItem = menuItems?.find((m) => m.id === item.menu_item_id);
-                return (
-                  <div key={index} className="flex justify-between items-center">
-                    <span>
-                      {item.quantity}x {menuItem?.name}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <span>${item.subtotal.toFixed(2)}</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeOrderItem(index)}
-                      >
-                        <FileX className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
-              <div className="border-t pt-2 mt-2">
-                <div className="flex justify-between font-medium">
-                  <span>Total</span>
-                  <span>
-                    ${orderItems.reduce((sum, item) => sum + item.subtotal, 0).toFixed(2)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
+          <OrderItemsList
+            orderItems={orderItems}
+            menuItems={menuItems}
+            onRemoveItem={removeOrderItem}
+          />
 
           <div className="flex gap-2">
             <Button 
