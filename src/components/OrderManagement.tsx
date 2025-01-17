@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Download } from "lucide-react";
+import { Download, FileX } from "lucide-react";
+import jsPDF from 'jspdf';
 import CreateOrder from "./CreateOrder";
 
 interface Order {
@@ -99,37 +100,73 @@ const OrderManagement = () => {
   });
 
   const downloadBill = (order: Order) => {
-    // Create bill content
-    const billContent = `
-RESTAURANT BILL
+    const doc = new jsPDF();
+    
+    // Set background color
+    doc.setFillColor(250, 250, 250);
+    doc.rect(0, 0, doc.internal.pageSize.width, doc.internal.pageSize.height, 'F');
 
-Order #${order.id.slice(0, 8)}
-Date: ${new Date(order.created_at).toLocaleString()}
+    // Add waffle pattern
+    for (let i = 0; i < doc.internal.pageSize.width; i += 10) {
+      for (let j = 0; j < doc.internal.pageSize.height; j += 10) {
+        doc.setFillColor(245, 245, 245);
+        doc.rect(i, j, 5, 5, 'F');
+      }
+    }
 
-Customer: ${order.customer?.name || `Table ${order.customer?.table_number}`}
-${order.customer?.phone ? `Phone: ${order.customer?.phone}` : ''}
+    // Add header
+    doc.setFontSize(24);
+    doc.setTextColor(40, 40, 40);
+    doc.text("RESTAURANT BILL", 105, 20, { align: "center" });
 
-Items:
-${order.order_items.map(item => 
-  `${item.quantity}x ${item.menu_item?.name}
-   $${item.unit_price.toFixed(2)} x ${item.quantity} = $${item.subtotal.toFixed(2)}`
-).join('\n')}
+    // Add order details
+    doc.setFontSize(12);
+    doc.text(`Order #${order.id.slice(0, 8)}`, 20, 40);
+    doc.text(`Date: ${new Date(order.created_at).toLocaleString()}`, 20, 50);
 
-Total Amount: $${order.total_amount.toFixed(2)}
+    // Add customer details
+    doc.text("Customer Details:", 20, 70);
+    doc.text(`Name: ${order.customer?.name || `Table ${order.customer?.table_number}`}`, 20, 80);
+    if (order.customer?.phone) {
+      doc.text(`Phone: ${order.customer.phone}`, 20, 90);
+    }
 
-Thank you for your business!
-    `;
+    // Add items table
+    doc.text("Order Items:", 20, 110);
+    let yPos = 120;
+    
+    // Table header
+    doc.setFillColor(230, 230, 230);
+    doc.rect(20, yPos - 5, 170, 10, 'F');
+    doc.text("Item", 25, yPos);
+    doc.text("Qty", 100, yPos);
+    doc.text("Price", 120, yPos);
+    doc.text("Subtotal", 160, yPos);
+    yPos += 10;
 
-    // Create blob and download
-    const blob = new Blob([billContent], { type: 'text/plain' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `bill-${order.id.slice(0, 8)}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
+    // Table content
+    order.order_items?.forEach((item) => {
+      doc.text(item.menu_item?.name || "", 25, yPos);
+      doc.text(item.quantity.toString(), 100, yPos);
+      doc.text(`$${item.unit_price.toFixed(2)}`, 120, yPos);
+      doc.text(`$${item.subtotal.toFixed(2)}`, 160, yPos);
+      yPos += 10;
+    });
+
+    // Add total
+    doc.setDrawColor(200, 200, 200);
+    doc.line(20, yPos, 190, yPos);
+    yPos += 10;
+    doc.setFontSize(14);
+    doc.text("Total Amount:", 120, yPos);
+    doc.text(`$${order.total_amount.toFixed(2)}`, 160, yPos);
+
+    // Add footer
+    doc.setFontSize(12);
+    doc.text("Thank you for your business!", 105, yPos + 20, { align: "center" });
+
+    // Save the PDF
+    doc.save(`bill-${order.id.slice(0, 8)}.pdf`);
   };
 
   const getStatusColor = (status: Order["status"]) => {

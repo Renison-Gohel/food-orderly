@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FileX } from "lucide-react";
 
 interface MenuItem {
   id: string;
@@ -135,6 +136,27 @@ const CreateOrder = () => {
     setQuantity(1);
   };
 
+  const resetOrder = () => {
+    setSelectedCustomer("");
+    setSelectedMenuItem("");
+    setQuantity(1);
+    setOrderItems([]);
+    toast({
+      title: "Order Reset",
+      description: "The order has been reset successfully",
+    });
+  };
+
+  const removeOrderItem = (index: number) => {
+    const newItems = [...orderItems];
+    newItems.splice(index, 1);
+    setOrderItems(newItems);
+    toast({
+      title: "Item Removed",
+      description: "The item has been removed from the order",
+    });
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -184,11 +206,20 @@ const CreateOrder = () => {
               {orderItems.map((item, index) => {
                 const menuItem = menuItems?.find((m) => m.id === item.menu_item_id);
                 return (
-                  <div key={index} className="flex justify-between text-sm">
+                  <div key={index} className="flex justify-between items-center">
                     <span>
                       {item.quantity}x {menuItem?.name}
                     </span>
-                    <span>${item.subtotal.toFixed(2)}</span>
+                    <div className="flex items-center gap-2">
+                      <span>${item.subtotal.toFixed(2)}</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeOrderItem(index)}
+                      >
+                        <FileX className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 );
               })}
@@ -203,13 +234,23 @@ const CreateOrder = () => {
             </div>
           )}
 
-          <Button 
-            onClick={() => createOrderMutation.mutate()}
-            disabled={!selectedCustomer || orderItems.length === 0}
-            className="w-full"
-          >
-            Create Order
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => createOrderMutation.mutate()}
+              disabled={!selectedCustomer || orderItems.length === 0}
+              className="flex-1"
+            >
+              Create Order
+            </Button>
+            {orderItems.length > 0 && (
+              <Button 
+                variant="destructive"
+                onClick={resetOrder}
+              >
+                Reset Order
+              </Button>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>
