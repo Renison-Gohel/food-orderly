@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Check } from "lucide-react";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -50,16 +50,8 @@ const CustomerSelector = ({ selectedCustomer, onSelectCustomer }: CustomerSelect
 
   const selectedCustomerLabel = customers?.find(c => c.id === selectedCustomer);
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center gap-2 h-10 px-4 border rounded-md">
-        <Loader2 className="h-4 w-4 animate-spin" />
-        <span>Loading customers...</span>
-      </div>
-    );
-  }
-
   const filteredCustomers = customers?.filter(customer => {
+    if (!searchValue) return true;
     const searchTerm = searchValue.toLowerCase();
     const customerName = customer.name?.toLowerCase() || '';
     const tableNumber = customer.table_number?.toLowerCase() || '';
@@ -69,6 +61,15 @@ const CustomerSelector = ({ selectedCustomer, onSelectCustomer }: CustomerSelect
            tableNumber.includes(searchTerm) || 
            phone.includes(searchTerm);
   });
+
+  if (isLoading) {
+    return (
+      <Button variant="outline" className="w-full justify-between" disabled>
+        <span>Loading customers...</span>
+        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+      </Button>
+    );
+  }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -82,12 +83,13 @@ const CustomerSelector = ({ selectedCustomer, onSelectCustomer }: CustomerSelect
           {selectedCustomer
             ? getCustomerLabel(selectedCustomerLabel as Customer)
             : "Select customer..."}
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[400px] p-0">
-        <Command>
-          <CommandInput
-            placeholder="Search customers..."
+        <Command shouldFilter={false}>
+          <CommandInput 
+            placeholder="Search customers..." 
             value={searchValue}
             onValueChange={setSearchValue}
           />

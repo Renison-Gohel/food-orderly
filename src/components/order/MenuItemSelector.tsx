@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Check } from "lucide-react";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Command,
@@ -55,19 +55,31 @@ const MenuItemSelector = ({
 
   const selectedItem = menuItems?.find(item => item.id === selectedMenuItem);
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center gap-2 h-10 px-4 border rounded-md">
-        <Loader2 className="h-4 w-4 animate-spin" />
-        <span>Loading menu items...</span>
-      </div>
-    );
-  }
-
   const filteredMenuItems = menuItems?.filter(item => {
+    if (!searchValue) return true;
     const searchTerm = searchValue.toLowerCase();
     return item.name.toLowerCase().includes(searchTerm);
   });
+
+  if (isLoading) {
+    return (
+      <div className="flex gap-2">
+        <Button variant="outline" className="w-full justify-between" disabled>
+          <span>Loading menu items...</span>
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+        <Input
+          type="number"
+          min="1"
+          value={quantity}
+          onChange={(e) => onQuantityChange(parseInt(e.target.value) || 1)}
+          className="w-24"
+          disabled
+        />
+        <Button disabled>Add Item</Button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex gap-2">
@@ -82,10 +94,11 @@ const MenuItemSelector = ({
             {selectedMenuItem
               ? `${selectedItem?.name} - $${selectedItem?.price}`
               : "Select menu item..."}
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[400px] p-0">
-          <Command>
+          <Command shouldFilter={false}>
             <CommandInput
               placeholder="Search menu items..."
               value={searchValue}
