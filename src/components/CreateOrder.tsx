@@ -17,7 +17,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileX, Check, ChevronsUpDown } from "lucide-react";
+import { FileX, Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface MenuItem {
@@ -193,7 +193,10 @@ const CreateOrder = () => {
                 disabled={isLoadingCustomers}
               >
                 {isLoadingCustomers ? (
-                  "Loading customers..."
+                  <div className="flex items-center">
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Loading customers...
+                  </div>
                 ) : selectedCustomer ? (
                   customers?.find((customer) => customer.id === selectedCustomer)?.name ||
                   `Table ${customers?.find((customer) => customer.id === selectedCustomer)?.table_number}`
@@ -244,7 +247,10 @@ const CreateOrder = () => {
                   disabled={isLoadingMenuItems}
                 >
                   {isLoadingMenuItems ? (
-                    "Loading menu items..."
+                    <div className="flex items-center">
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Loading menu items...
+                    </div>
                   ) : selectedMenuItem ? (
                     menuItems?.find((item) => item.id === selectedMenuItem)?.name
                   ) : (
