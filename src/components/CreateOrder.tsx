@@ -206,7 +206,7 @@ const CreateOrder = () => {
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
-            {customers && customers.length > 0 && (
+            {!isLoadingCustomers && customers && customers.length > 0 && (
               <PopoverContent className="w-[400px] p-0">
                 <Command>
                   <CommandInput placeholder="Search customer..." />
@@ -259,7 +259,7 @@ const CreateOrder = () => {
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
-              {menuItems && menuItems.length > 0 && (
+              {!isLoadingMenuItems && menuItems && menuItems.length > 0 && (
                 <PopoverContent className="w-[400px] p-0">
                   <Command>
                     <CommandInput placeholder="Search menu item..." />
