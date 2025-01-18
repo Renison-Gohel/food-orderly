@@ -40,7 +40,6 @@ const MenuItemSelector = ({
   onAddItem,
 }: MenuItemSelectorProps) => {
   const [open, setOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
 
   const { data: menuItems = [], isLoading } = useQuery({
     queryKey: ["menuItems"],
@@ -54,12 +53,7 @@ const MenuItemSelector = ({
   });
 
   const selectedItem = menuItems.find(item => item.id === selectedMenuItem);
-
-  const filteredMenuItems = menuItems.filter(item => {
-    if (!searchValue) return true;
-    const searchTerm = searchValue.toLowerCase();
-    return item.name.toLowerCase().includes(searchTerm);
-  });
+  const getMenuItemLabel = (item: MenuItem) => `${item.name} - $${item.price}`;
 
   return (
     <div className="flex gap-2">
@@ -73,26 +67,20 @@ const MenuItemSelector = ({
             disabled={isLoading}
           >
             {selectedMenuItem && selectedItem
-              ? `${selectedItem.name} - $${selectedItem.price}`
-              : isLoading
-                ? "Loading menu items..."
-                : "Select menu item..."}
+              ? getMenuItemLabel(selectedItem)
+              : "Select menu item..."}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[400px] p-0">
-          <Command shouldFilter={false}>
-            <CommandInput
-              placeholder="Search menu items..."
-              value={searchValue}
-              onValueChange={setSearchValue}
-            />
+          <Command shouldFilter={true}>
+            <CommandInput placeholder="Search menu items..." />
             <CommandEmpty>No menu item found.</CommandEmpty>
             <CommandGroup className="max-h-[300px] overflow-auto">
-              {filteredMenuItems.map((item) => (
+              {menuItems.map((item) => (
                 <CommandItem
                   key={item.id}
-                  value={item.id}
+                  value={getMenuItemLabel(item)}
                   onSelect={() => {
                     onSelectMenuItem(item.id);
                     setOpen(false);
@@ -104,7 +92,7 @@ const MenuItemSelector = ({
                       selectedMenuItem === item.id ? "opacity-100" : "opacity-0"
                     )}
                   />
-                  {item.name} - ${item.price}
+                  {getMenuItemLabel(item)}
                 </CommandItem>
               ))}
             </CommandGroup>
@@ -117,9 +105,8 @@ const MenuItemSelector = ({
         value={quantity}
         onChange={(e) => onQuantityChange(parseInt(e.target.value) || 1)}
         className="w-24"
-        disabled={isLoading}
       />
-      <Button onClick={onAddItem} disabled={!selectedMenuItem || isLoading}>
+      <Button onClick={onAddItem} disabled={!selectedMenuItem}>
         Add Item
       </Button>
     </div>

@@ -31,7 +31,6 @@ interface CustomerSelectorProps {
 
 const CustomerSelector = ({ selectedCustomer, onSelectCustomer }: CustomerSelectorProps) => {
   const [open, setOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
 
   const { data: customers = [], isLoading } = useQuery({
     queryKey: ["customers"],
@@ -48,19 +47,7 @@ const CustomerSelector = ({ selectedCustomer, onSelectCustomer }: CustomerSelect
     return customer.name || `Table ${customer.table_number}` + (customer.phone ? ` (${customer.phone})` : '');
   };
 
-  const selectedCustomerLabel = customers.find(c => c.id === selectedCustomer);
-
-  const filteredCustomers = customers.filter(customer => {
-    if (!searchValue) return true;
-    const searchTerm = searchValue.toLowerCase();
-    const customerName = customer.name?.toLowerCase() || '';
-    const tableNumber = customer.table_number?.toLowerCase() || '';
-    const phone = customer.phone?.toLowerCase() || '';
-    
-    return customerName.includes(searchTerm) || 
-           tableNumber.includes(searchTerm) || 
-           phone.includes(searchTerm);
-  });
+  const selectedCustomerData = customers.find(c => c.id === selectedCustomer);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -72,27 +59,21 @@ const CustomerSelector = ({ selectedCustomer, onSelectCustomer }: CustomerSelect
           className="w-full justify-between"
           disabled={isLoading}
         >
-          {selectedCustomer && selectedCustomerLabel
-            ? getCustomerLabel(selectedCustomerLabel)
-            : isLoading 
-              ? "Loading customers..."
-              : "Select customer..."}
+          {selectedCustomer && selectedCustomerData
+            ? getCustomerLabel(selectedCustomerData)
+            : "Select customer..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[400px] p-0">
-        <Command shouldFilter={false}>
-          <CommandInput 
-            placeholder="Search customers..." 
-            value={searchValue}
-            onValueChange={setSearchValue}
-          />
+        <Command shouldFilter={true}>
+          <CommandInput placeholder="Search customers..." />
           <CommandEmpty>No customer found.</CommandEmpty>
           <CommandGroup className="max-h-[300px] overflow-auto">
-            {filteredCustomers.map((customer) => (
+            {customers.map((customer) => (
               <CommandItem
                 key={customer.id}
-                value={customer.id}
+                value={getCustomerLabel(customer)}
                 onSelect={() => {
                   onSelectCustomer(customer.id);
                   setOpen(false);

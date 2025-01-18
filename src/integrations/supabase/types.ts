@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      cms_subscribers: {
+        Row: {
+          created_at: string | null
+          end_date: string
+          id: string
+          name: string
+          phone_number: string | null
+          start_date: string
+          updated_at: string | null
+          whatsapp_number: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          end_date: string
+          id?: string
+          name: string
+          phone_number?: string | null
+          start_date: string
+          updated_at?: string | null
+          whatsapp_number?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          end_date?: string
+          id?: string
+          name?: string
+          phone_number?: string | null
+          start_date?: string
+          updated_at?: string | null
+          whatsapp_number?: string | null
+        }
+        Relationships: []
+      }
       customers: {
         Row: {
           created_at: string
