@@ -117,7 +117,7 @@ const OrderManagement = () => {
     // Add header
     doc.setFontSize(24);
     doc.setTextColor(40, 40, 40);
-    doc.text("RESTAURANT BILL", 105, 20, { align: "center" });
+    doc.text("THE WALLS OF WAFFLE", 105, 20, { align: "center" });
 
     // Add order details
     doc.setFontSize(12);
@@ -148,8 +148,8 @@ const OrderManagement = () => {
     order.order_items?.forEach((item) => {
       doc.text(item.menu_item?.name || "", 25, yPos);
       doc.text(item.quantity.toString(), 100, yPos);
-      doc.text(`$${item.unit_price.toFixed(2)}`, 120, yPos);
-      doc.text(`$${item.subtotal.toFixed(2)}`, 160, yPos);
+      doc.text(`₹${item.unit_price.toFixed(2)}`, 120, yPos);
+      doc.text(`₹${item.subtotal.toFixed(2)}`, 160, yPos);
       yPos += 10;
     });
 
@@ -159,7 +159,7 @@ const OrderManagement = () => {
     yPos += 10;
     doc.setFontSize(14);
     doc.text("Total Amount:", 120, yPos);
-    doc.text(`$${order.total_amount.toFixed(2)}`, 160, yPos);
+    doc.text(`₹${order.total_amount.toFixed(2)}`, 160, yPos);
 
     // Add footer
     doc.setFontSize(12);
@@ -238,7 +238,7 @@ const OrderManagement = () => {
                           <span>
                             {item.quantity}x {item.menu_item?.name}
                           </span>
-                          <span>${item.subtotal.toFixed(2)}</span>
+                          <span>₹{item.subtotal.toFixed(2)}</span>
                         </div>
                       ))}
                       <div className="border-t pt-2 mt-2">

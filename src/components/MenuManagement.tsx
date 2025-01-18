@@ -194,7 +194,7 @@ const MenuManagement = () => {
                 <div>
                   <h3 className="font-semibold">{item.name}</h3>
                   <p className="text-sm text-gray-500">{item.description}</p>
-                  <p className="font-medium mt-2">${item.price.toFixed(2)}</p>
+                  <p className="font-medium mt-2">₹{item.price.toFixed(2)}</p>
                 </div>
                 <div className="flex gap-2">
                   <Button size="icon" variant="outline" onClick={() => handleEdit(item)}>
