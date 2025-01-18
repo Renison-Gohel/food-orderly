@@ -46,7 +46,7 @@ const MenuItemSelector = ({
   });
 
   const selectedItem = menuItems.find(item => item.id === selectedMenuItem);
-  const getMenuItemLabel = (item: MenuItem) => `${item.name} - $${item.price}`;
+  const getMenuItemLabel = (item: MenuItem) => `${item.name} - $${item.price.toFixed(2)}`;
 
   const filteredMenuItems = menuItems.filter(item => {
     const searchTerm = searchQuery.toLowerCase();
@@ -54,14 +54,14 @@ const MenuItemSelector = ({
   });
 
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-col sm:flex-row gap-2">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-full justify-between"
+            className="w-full justify-between text-left truncate min-h-[40px]"
             disabled={isLoading}
           >
             {selectedMenuItem && selectedItem
@@ -69,7 +69,7 @@ const MenuItemSelector = ({
               : "Select menu item..."}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[400px] p-4">
+        <PopoverContent className="w-[calc(100vw-2rem)] sm:w-[400px] p-4">
           <div className="space-y-2">
             <Input
               placeholder="Search menu items..."
@@ -83,7 +83,7 @@ const MenuItemSelector = ({
                   <Button
                     key={item.id}
                     variant="ghost"
-                    className="w-full justify-start font-normal"
+                    className="w-full justify-start font-normal text-left truncate"
                     onClick={() => {
                       onSelectMenuItem(item.id);
                       setOpen(false);
@@ -103,16 +103,18 @@ const MenuItemSelector = ({
           </div>
         </PopoverContent>
       </Popover>
-      <Input
-        type="number"
-        min="1"
-        value={quantity}
-        onChange={(e) => onQuantityChange(parseInt(e.target.value) || 1)}
-        className="w-24"
-      />
-      <Button onClick={onAddItem} disabled={!selectedMenuItem}>
-        Add Item
-      </Button>
+      <div className="flex gap-2">
+        <Input
+          type="number"
+          min="1"
+          value={quantity}
+          onChange={(e) => onQuantityChange(parseInt(e.target.value) || 1)}
+          className="w-24"
+        />
+        <Button onClick={onAddItem} disabled={!selectedMenuItem} className="whitespace-nowrap">
+          Add Item
+        </Button>
+      </div>
     </div>
   );
 };

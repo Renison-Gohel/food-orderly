@@ -61,7 +61,7 @@ const CustomerSelector = ({ selectedCustomer, onSelectCustomer }: CustomerSelect
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between"
+          className="w-full justify-between text-left truncate min-h-[40px]"
           disabled={isLoading}
         >
           {selectedCustomer && selectedCustomerData
@@ -69,7 +69,7 @@ const CustomerSelector = ({ selectedCustomer, onSelectCustomer }: CustomerSelect
             : "Select customer..."}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[400px] p-4">
+      <PopoverContent className="w-[calc(100vw-2rem)] sm:w-[400px] p-4">
         <div className="space-y-2">
           <Input
             placeholder="Search customers..."
@@ -83,7 +83,7 @@ const CustomerSelector = ({ selectedCustomer, onSelectCustomer }: CustomerSelect
                 <Button
                   key={customer.id}
                   variant="ghost"
-                  className="w-full justify-start font-normal"
+                  className="w-full justify-start font-normal text-left truncate"
                   onClick={() => {
                     onSelectCustomer(customer.id);
                     setOpen(false);
