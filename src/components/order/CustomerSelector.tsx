@@ -1,21 +1,14 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Customer {
   id: string;
@@ -31,6 +24,7 @@ interface CustomerSelectorProps {
 
 const CustomerSelector = ({ selectedCustomer, onSelectCustomer }: CustomerSelectorProps) => {
   const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: customers = [], isLoading } = useQuery({
     queryKey: ["customers"],
@@ -47,6 +41,17 @@ const CustomerSelector = ({ selectedCustomer, onSelectCustomer }: CustomerSelect
     return customer.name || `Table ${customer.table_number}` + (customer.phone ? ` (${customer.phone})` : '');
   };
 
+  const filteredCustomers = customers.filter(customer => {
+    const searchTerm = searchQuery.toLowerCase();
+    const customerName = customer.name?.toLowerCase() || '';
+    const tableNumber = customer.table_number?.toLowerCase() || '';
+    const phone = customer.phone?.toLowerCase() || '';
+    
+    return customerName.includes(searchTerm) || 
+           tableNumber.includes(searchTerm) || 
+           phone.includes(searchTerm);
+  });
+
   const selectedCustomerData = customers.find(c => c.id === selectedCustomer);
 
   return (
@@ -62,34 +67,40 @@ const CustomerSelector = ({ selectedCustomer, onSelectCustomer }: CustomerSelect
           {selectedCustomer && selectedCustomerData
             ? getCustomerLabel(selectedCustomerData)
             : "Select customer..."}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[400px] p-0">
-        <Command shouldFilter={true}>
-          <CommandInput placeholder="Search customers..." />
-          <CommandEmpty>No customer found.</CommandEmpty>
-          <CommandGroup className="max-h-[300px] overflow-auto">
-            {customers.map((customer) => (
-              <CommandItem
-                key={customer.id}
-                value={getCustomerLabel(customer)}
-                onSelect={() => {
-                  onSelectCustomer(customer.id);
-                  setOpen(false);
-                }}
-              >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    selectedCustomer === customer.id ? "opacity-100" : "opacity-0"
-                  )}
-                />
-                {getCustomerLabel(customer)}
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        </Command>
+      <PopoverContent className="w-[400px] p-4">
+        <div className="space-y-2">
+          <Input
+            placeholder="Search customers..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="mb-2"
+          />
+          <ScrollArea className="h-[200px]">
+            <div className="space-y-1">
+              {filteredCustomers.map((customer) => (
+                <Button
+                  key={customer.id}
+                  variant="ghost"
+                  className="w-full justify-start font-normal"
+                  onClick={() => {
+                    onSelectCustomer(customer.id);
+                    setOpen(false);
+                    setSearchQuery("");
+                  }}
+                >
+                  {getCustomerLabel(customer)}
+                </Button>
+              ))}
+              {filteredCustomers.length === 0 && (
+                <p className="text-sm text-muted-foreground p-2">
+                  No customers found.
+                </p>
+              )}
+            </div>
+          </ScrollArea>
+        </div>
       </PopoverContent>
     </Popover>
   );

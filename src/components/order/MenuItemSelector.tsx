@@ -3,20 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface MenuItem {
   id: string;
@@ -40,6 +32,7 @@ const MenuItemSelector = ({
   onAddItem,
 }: MenuItemSelectorProps) => {
   const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: menuItems = [], isLoading } = useQuery({
     queryKey: ["menuItems"],
@@ -55,6 +48,11 @@ const MenuItemSelector = ({
   const selectedItem = menuItems.find(item => item.id === selectedMenuItem);
   const getMenuItemLabel = (item: MenuItem) => `${item.name} - $${item.price}`;
 
+  const filteredMenuItems = menuItems.filter(item => {
+    const searchTerm = searchQuery.toLowerCase();
+    return item.name.toLowerCase().includes(searchTerm);
+  });
+
   return (
     <div className="flex gap-2">
       <Popover open={open} onOpenChange={setOpen}>
@@ -69,34 +67,40 @@ const MenuItemSelector = ({
             {selectedMenuItem && selectedItem
               ? getMenuItemLabel(selectedItem)
               : "Select menu item..."}
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[400px] p-0">
-          <Command shouldFilter={true}>
-            <CommandInput placeholder="Search menu items..." />
-            <CommandEmpty>No menu item found.</CommandEmpty>
-            <CommandGroup className="max-h-[300px] overflow-auto">
-              {menuItems.map((item) => (
-                <CommandItem
-                  key={item.id}
-                  value={getMenuItemLabel(item)}
-                  onSelect={() => {
-                    onSelectMenuItem(item.id);
-                    setOpen(false);
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      selectedMenuItem === item.id ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  {getMenuItemLabel(item)}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </Command>
+        <PopoverContent className="w-[400px] p-4">
+          <div className="space-y-2">
+            <Input
+              placeholder="Search menu items..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="mb-2"
+            />
+            <ScrollArea className="h-[200px]">
+              <div className="space-y-1">
+                {filteredMenuItems.map((item) => (
+                  <Button
+                    key={item.id}
+                    variant="ghost"
+                    className="w-full justify-start font-normal"
+                    onClick={() => {
+                      onSelectMenuItem(item.id);
+                      setOpen(false);
+                      setSearchQuery("");
+                    }}
+                  >
+                    {getMenuItemLabel(item)}
+                  </Button>
+                ))}
+                {filteredMenuItems.length === 0 && (
+                  <p className="text-sm text-muted-foreground p-2">
+                    No menu items found.
+                  </p>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
         </PopoverContent>
       </Popover>
       <Input
