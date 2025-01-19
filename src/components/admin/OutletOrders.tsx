@@ -18,6 +18,7 @@ const OutletOrders = ({ outletId }: OutletOrdersProps) => {
           *,
           customer:customers(name, table_number, phone),
           order_items(
+            id,
             quantity,
             unit_price,
             subtotal,
@@ -68,7 +69,7 @@ const OutletOrders = ({ outletId }: OutletOrdersProps) => {
           </div>
           <div className="text-sm space-y-1">
             {order.order_items?.map((item, index) => (
-              <div key={index} className="flex justify-between">
+              <div key={item.id} className="flex justify-between">
                 <span>
                   {item.quantity}x {item.menu_item?.name}
                 </span>
