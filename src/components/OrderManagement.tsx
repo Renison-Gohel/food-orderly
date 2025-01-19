@@ -146,51 +146,41 @@ const OrderManagement = () => {
     <div className="space-y-6">
       <CreateOrder />
 
-      <div className="flex flex-col md:flex-row gap-6">
-        <div className="w-full md:w-3/4">
-          <Tabs defaultValue="orders">
-            <TabsList>
-              <TabsTrigger value="orders">Orders</TabsTrigger>
-              <TabsTrigger value="stats">Statistics</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="orders" className="space-y-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search by order ID, customer name, phone, or table..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              
-              <OrderList
-                orders={filteredOrders}
-                onUpdateStatus={(orderId, status) => 
-                  updateOrderStatus.mutate({ orderId, status })
-                }
-                onDeleteOrder={(orderId) => deleteOrder.mutate(orderId)}
+      <div className="flex flex-col space-y-6">
+        <Tabs defaultValue="orders" className="w-full">
+          <TabsList>
+            <TabsTrigger value="orders">Orders</TabsTrigger>
+            <TabsTrigger value="stats">Statistics</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="orders" className="space-y-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search by order ID, customer name, phone, or table..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
               />
-            </TabsContent>
+            </div>
             
-            <TabsContent value="stats">
-              <OrderStats
-                orders={filteredOrders}
-                selectedDate={selectedDate}
-                onDateChange={(date) => date && setSelectedDate(date)}
-              />
-            </TabsContent>
-          </Tabs>
-        </div>
-
-        <div className="w-full md:w-1/4">
-          <OrderStats
-            orders={filteredOrders}
-            selectedDate={selectedDate}
-            onDateChange={(date) => date && setSelectedDate(date)}
-          />
-        </div>
+            <OrderList
+              orders={filteredOrders}
+              onUpdateStatus={(orderId, status) => 
+                updateOrderStatus.mutate({ orderId, status })
+              }
+              onDeleteOrder={(orderId) => deleteOrder.mutate(orderId)}
+            />
+          </TabsContent>
+          
+          <TabsContent value="stats">
+            <OrderStats
+              orders={filteredOrders}
+              selectedDate={selectedDate}
+              onDateChange={(date) => date && setSelectedDate(date)}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
