@@ -9,6 +9,68 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      cms_admins: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          role: Database["public"]["Enums"]["cms_admin_role"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          role?: Database["public"]["Enums"]["cms_admin_role"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          role?: Database["public"]["Enums"]["cms_admin_role"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cms_outlets: {
+        Row: {
+          address: string | null
+          admin_id: string | null
+          created_at: string
+          id: string
+          name: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          admin_id?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          admin_id?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cms_outlets_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "cms_admins"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cms_subscribers: {
         Row: {
           created_at: string | null
@@ -48,6 +110,7 @@ export type Database = {
           email: string | null
           id: string
           name: string | null
+          outlet_id: string | null
           phone: string | null
           table_number: string | null
         }
@@ -56,6 +119,7 @@ export type Database = {
           email?: string | null
           id?: string
           name?: string | null
+          outlet_id?: string | null
           phone?: string | null
           table_number?: string | null
         }
@@ -64,10 +128,19 @@ export type Database = {
           email?: string | null
           id?: string
           name?: string | null
+          outlet_id?: string | null
           phone?: string | null
           table_number?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "customers_outlet_id_fkey"
+            columns: ["outlet_id"]
+            isOneToOne: false
+            referencedRelation: "cms_outlets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       menu_items: {
         Row: {
@@ -75,6 +148,7 @@ export type Database = {
           description: string | null
           id: string
           name: string
+          outlet_id: string | null
           photo_url: string | null
           price: number
         }
@@ -83,6 +157,7 @@ export type Database = {
           description?: string | null
           id?: string
           name: string
+          outlet_id?: string | null
           photo_url?: string | null
           price: number
         }
@@ -91,10 +166,19 @@ export type Database = {
           description?: string | null
           id?: string
           name?: string
+          outlet_id?: string | null
           photo_url?: string | null
           price?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "menu_items_outlet_id_fkey"
+            columns: ["outlet_id"]
+            isOneToOne: false
+            referencedRelation: "cms_outlets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       order_items: {
         Row: {
@@ -146,6 +230,7 @@ export type Database = {
           created_at: string
           customer_id: string | null
           id: string
+          outlet_id: string | null
           status: Database["public"]["Enums"]["order_status"] | null
           total_amount: number | null
           updated_at: string
@@ -154,6 +239,7 @@ export type Database = {
           created_at?: string
           customer_id?: string | null
           id?: string
+          outlet_id?: string | null
           status?: Database["public"]["Enums"]["order_status"] | null
           total_amount?: number | null
           updated_at?: string
@@ -162,6 +248,7 @@ export type Database = {
           created_at?: string
           customer_id?: string | null
           id?: string
+          outlet_id?: string | null
           status?: Database["public"]["Enums"]["order_status"] | null
           total_amount?: number | null
           updated_at?: string
@@ -174,6 +261,13 @@ export type Database = {
             referencedRelation: "customers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "orders_outlet_id_fkey"
+            columns: ["outlet_id"]
+            isOneToOne: false
+            referencedRelation: "cms_outlets"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
@@ -184,6 +278,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      cms_admin_role: "super_admin" | "outlet_admin"
       order_status: "pending" | "ready" | "paid"
     }
     CompositeTypes: {
