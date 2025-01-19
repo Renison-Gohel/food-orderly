@@ -9,68 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      cms_admins: {
-        Row: {
-          created_at: string
-          email: string
-          id: string
-          role: Database["public"]["Enums"]["cms_admin_role"]
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          email: string
-          id?: string
-          role?: Database["public"]["Enums"]["cms_admin_role"]
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          email?: string
-          id?: string
-          role?: Database["public"]["Enums"]["cms_admin_role"]
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      cms_outlets: {
-        Row: {
-          address: string | null
-          admin_id: string | null
-          created_at: string
-          id: string
-          name: string
-          phone: string | null
-          updated_at: string
-        }
-        Insert: {
-          address?: string | null
-          admin_id?: string | null
-          created_at?: string
-          id?: string
-          name: string
-          phone?: string | null
-          updated_at?: string
-        }
-        Update: {
-          address?: string | null
-          admin_id?: string | null
-          created_at?: string
-          id?: string
-          name?: string
-          phone?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cms_outlets_admin_id_fkey"
-            columns: ["admin_id"]
-            isOneToOne: false
-            referencedRelation: "cms_admins"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       cms_subscribers: {
         Row: {
           created_at: string | null
@@ -132,15 +70,7 @@ export type Database = {
           phone?: string | null
           table_number?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "customers_outlet_id_fkey"
-            columns: ["outlet_id"]
-            isOneToOne: false
-            referencedRelation: "cms_outlets"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       menu_items: {
         Row: {
@@ -170,15 +100,7 @@ export type Database = {
           photo_url?: string | null
           price?: number
         }
-        Relationships: [
-          {
-            foreignKeyName: "menu_items_outlet_id_fkey"
-            columns: ["outlet_id"]
-            isOneToOne: false
-            referencedRelation: "cms_outlets"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       order_items: {
         Row: {
@@ -259,13 +181,6 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "orders_outlet_id_fkey"
-            columns: ["outlet_id"]
-            isOneToOne: false
-            referencedRelation: "cms_outlets"
             referencedColumns: ["id"]
           },
         ]
