@@ -40,8 +40,10 @@ interface Customer {
   email: string;
   table_number: string;
   created_at: string;
-  loyalty_points: number;
+  loyalty_points?: number; // Made optional with '?'
 }
+
+// ... keep existing code (CustomerManagement component definition and hooks)
 
 const CustomerManagement = () => {
   const { toast } = useToast();
@@ -63,7 +65,10 @@ const CustomerManagement = () => {
         throw error;
       }
       console.log("Customers data:", data);
-      return data as Customer[];
+      return (data || []).map(customer => ({
+        ...customer,
+        loyalty_points: customer.loyalty_points || 0
+      })) as Customer[];
     },
     meta: {
       onError: (error: Error) => {
@@ -196,64 +201,64 @@ const CustomerManagement = () => {
                             <DialogTitle>Edit Customer</DialogTitle>
                           </DialogHeader>
                           <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                          <Input
-                            placeholder="Name"
-                            value={editingCustomer?.name || ""}
-                            onChange={(e) =>
-                              setEditingCustomer(prev => ({
-                                ...prev!,
-                                name: e.target.value,
-                              }))
-                            }
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Input
-                            placeholder="Phone"
-                            value={editingCustomer?.phone || ""}
-                            onChange={(e) =>
-                              setEditingCustomer(prev => ({
-                                ...prev!,
-                                phone: e.target.value,
-                              }))
-                            }
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Input
-                            placeholder="Email"
-                            value={editingCustomer?.email || ""}
-                            onChange={(e) =>
-                              setEditingCustomer(prev => ({
-                                ...prev!,
-                                email: e.target.value,
-                              }))
-                            }
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Input
-                            placeholder="Table Number"
-                            value={editingCustomer?.table_number || ""}
-                            onChange={(e) =>
-                              setEditingCustomer(prev => ({
-                                ...prev!,
-                                table_number: e.target.value,
-                              }))
-                            }
-                          />
-                        </div>
-                        <Button
-                          className="w-full"
-                          onClick={() => {
-                            if (editingCustomer) {
-                              updateCustomerMutation.mutate(editingCustomer);
-                            }
-                          }}
-                        >
-                          Save Changes
-                        </Button>
+                            <div className="space-y-2">
+                              <Input
+                                placeholder="Name"
+                                value={editingCustomer?.name || ""}
+                                onChange={(e) =>
+                                  setEditingCustomer(prev => ({
+                                    ...prev!,
+                                    name: e.target.value,
+                                  }))
+                                }
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Input
+                                placeholder="Phone"
+                                value={editingCustomer?.phone || ""}
+                                onChange={(e) =>
+                                  setEditingCustomer(prev => ({
+                                    ...prev!,
+                                    phone: e.target.value,
+                                  }))
+                                }
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Input
+                                placeholder="Email"
+                                value={editingCustomer?.email || ""}
+                                onChange={(e) =>
+                                  setEditingCustomer(prev => ({
+                                    ...prev!,
+                                    email: e.target.value,
+                                  }))
+                                }
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Input
+                                placeholder="Table Number"
+                                value={editingCustomer?.table_number || ""}
+                                onChange={(e) =>
+                                  setEditingCustomer(prev => ({
+                                    ...prev!,
+                                    table_number: e.target.value,
+                                  }))
+                                }
+                              />
+                            </div>
+                            <Button
+                              className="w-full"
+                              onClick={() => {
+                                if (editingCustomer) {
+                                  updateCustomerMutation.mutate(editingCustomer);
+                                }
+                              }}
+                            >
+                              Save Changes
+                            </Button>
                           </div>
                         </DialogContent>
                       </Dialog>
