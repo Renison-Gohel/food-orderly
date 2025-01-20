@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Edit, Trash2 } from "lucide-react";
+import { Search, Edit, Trash2, Gift } from "lucide-react";
 import CustomerForm from "./CustomerForm";
+import LoyaltySettings from "./loyalty/LoyaltySettings";
 import {
   Dialog,
   DialogContent,
@@ -25,6 +26,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 
 interface Customer {
   id: string;
@@ -33,6 +40,7 @@ interface Customer {
   email: string;
   table_number: string;
   created_at: string;
+  loyalty_points: number;
 }
 
 const CustomerManagement = () => {
@@ -145,42 +153,49 @@ const CustomerManagement = () => {
 
   return (
     <div className="space-y-6">
-      <CustomerForm />
-      
-      <div className="space-y-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-          <Input
-            placeholder="Search customers..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
+      <Tabs defaultValue="customers">
+        <TabsList>
+          <TabsTrigger value="customers">Customers</TabsTrigger>
+          <TabsTrigger value="loyalty">Loyalty Settings</TabsTrigger>
+        </TabsList>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredCustomers?.map((customer) => (
-            <Card key={customer.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-lg font-medium">
-                  {customer.name || `Table ${customer.table_number}`}
-                </CardTitle>
-                <div className="flex space-x-2">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setEditingCustomer(customer)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Edit Customer</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4 py-4">
+        <TabsContent value="customers" className="space-y-6">
+          <CustomerForm />
+          
+          <div className="space-y-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search customers..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredCustomers?.map((customer) => (
+                <Card key={customer.id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-lg font-medium">
+                      {customer.name || `Table ${customer.table_number}`}
+                    </CardTitle>
+                    <div className="flex space-x-2">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setEditingCustomer(customer)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Edit Customer</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4 py-4">
                         <div className="space-y-2">
                           <Input
                             placeholder="Name"
@@ -239,63 +254,76 @@ const CustomerManagement = () => {
                         >
                           Save Changes
                         </Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
 
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Customer</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to delete this customer? This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => deleteCustomerMutation.mutate(customer.id)}
-                          className="bg-red-500 hover:bg-red-600"
-                        >
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {customer.phone && (
-                    <p className="text-sm">
-                      <span className="text-gray-500">Phone:</span> {customer.phone}
-                    </p>
-                  )}
-                  {customer.email && (
-                    <p className="text-sm">
-                      <span className="text-gray-500">Email:</span> {customer.email}
-                    </p>
-                  )}
-                  {customer.table_number && (
-                    <p className="text-sm">
-                      <span className="text-gray-500">Table:</span> {customer.table_number}
-                    </p>
-                  )}
-                  <p className="text-sm">
-                    <span className="text-gray-500">Joined:</span>{" "}
-                    {new Date(customer.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Customer</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete this customer? This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => deleteCustomerMutation.mutate(customer.id)}
+                              className="bg-red-500 hover:bg-red-600"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {customer.phone && (
+                        <p className="text-sm">
+                          <span className="text-gray-500">Phone:</span> {customer.phone}
+                        </p>
+                      )}
+                      {customer.email && (
+                        <p className="text-sm">
+                          <span className="text-gray-500">Email:</span> {customer.email}
+                        </p>
+                      )}
+                      {customer.table_number && (
+                        <p className="text-sm">
+                          <span className="text-gray-500">Table:</span> {customer.table_number}
+                        </p>
+                      )}
+                      <p className="text-sm">
+                        <span className="text-gray-500">Joined:</span>{" "}
+                        {new Date(customer.created_at).toLocaleDateString()}
+                      </p>
+                      <p className="text-sm flex items-center">
+                        <Gift className="h-4 w-4 mr-1 text-purple-500" />
+                        <span className="text-gray-500">Loyalty Points:</span>{" "}
+                        <span className="ml-1 font-medium text-purple-600">
+                          {customer.loyalty_points || 0}
+                        </span>
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="loyalty">
+          <LoyaltySettings />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

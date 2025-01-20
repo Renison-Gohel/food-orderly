@@ -72,6 +72,30 @@ export type Database = {
         }
         Relationships: []
       }
+      loyalty_settings: {
+        Row: {
+          amount_threshold: number
+          created_at: string | null
+          id: string
+          points_per_amount: number
+          updated_at: string | null
+        }
+        Insert: {
+          amount_threshold?: number
+          created_at?: string | null
+          id?: string
+          points_per_amount?: number
+          updated_at?: string | null
+        }
+        Update: {
+          amount_threshold?: number
+          created_at?: string | null
+          id?: string
+          points_per_amount?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       menu_items: {
         Row: {
           created_at: string
