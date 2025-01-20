@@ -73,6 +73,7 @@ const CreateOrder = () => {
         title: "Success",
         description: "Order created successfully",
       });
+      // Only reset the order after successful creation
       resetOrder();
     },
     onError: (error: Error) => {
